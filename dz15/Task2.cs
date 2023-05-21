@@ -26,8 +26,13 @@ namespace dz15
 
         public static int Count(StringBuilder text, StringBuilder word)
         {
-            string[] words = text.ToString().Split(new char[] { ',', '.', ' ', '?', '!', ':', ';' });
+            string[] words = text.ToString().Split(new char[] { ',', '.', ' ', '?', '!', ':', ';', '\n', '\r', '\t'});
             return words.Count(str => str == word.ToString());
+        }
+
+        public static bool IsSeparator(char ch)
+        {
+            return ch == ' ' || ch == ',' || ch == ';' || ch == '.' || ch == '!' || ch == '?' || ch == ':' || ch == '\n' || ch == '\r' || ch == '\t';
         }
 
         public static int ChangeWord(StringBuilder path, StringBuilder word, StringBuilder changedWord)
@@ -35,6 +40,7 @@ namespace dz15
             int counter = 0;
             if (word.ToString() == "")
                 return counter;
+
             StringBuilder contents = new StringBuilder();
             using (FileStream fs = new FileStream(path.ToString(), FileMode.OpenOrCreate))
             {
@@ -42,7 +48,21 @@ namespace dz15
                 {
                     contents = new StringBuilder(sr.ReadToEnd());
                     counter = Count(contents, word);
-                    contents = contents.Replace(word.ToString(), changedWord.ToString());
+                    int miniCounter;
+                    for (int i = 0; i < contents.Length; i++)
+                    {
+                        miniCounter = 0;
+                        if (contents[i] == word.ToString()[0] && (i == 0 || IsSeparator(contents[i - 1])))
+                        {
+                            for (; i < contents.Length && miniCounter < word.Length && contents[i] == word[miniCounter]; i++, miniCounter++)
+                            { }
+                            if (miniCounter == word.Length && (i == contents.Length || IsSeparator(contents[i])))
+                            {
+                                contents = contents.Replace(word.ToString(), changedWord.ToString(), i - miniCounter, word.Length);
+                                i += changedWord.Length - word.Length;
+                            }
+                        }
+                    }
                 }
             }
             using (FileStream fs = new FileStream(path.ToString(), FileMode.OpenOrCreate))
