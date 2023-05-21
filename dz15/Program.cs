@@ -14,6 +14,10 @@
                     case 1:
                         Task1.Run();
                         break;
+                    case 2:
+                        Task2.Run();
+                        break;
+
                 }
             } while (choice != 0);
         }
